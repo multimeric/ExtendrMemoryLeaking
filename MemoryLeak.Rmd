@@ -1,0 +1,117 @@
+---
+title: "MemoryLeaks"
+output: github_document
+date: "2023-05-04"
+knit: (function(input, ...) {
+    callr::r(
+        function(...) rmarkdown::render(...),
+        args = list("MemoryLeak.Rmd", envir = globalenv()),
+        show = T
+    )
+    })
+---
+```{r}
+library(rextendr)
+```
+
+The below function reports memory usage at various times during the call of a Rust function.
+By default we use an integer vector as the input, but the `vec` argument is customized ocasionally.
+
+**Note that the actual error messages from extendr are shown here**.
+```{r}
+test_for_leaks <- function(func, vec = (1:10E7)[]){
+  lobstr::mem_used() |> format() |> paste(" used before allocation") |> print()
+  lobstr::mem_used() |> format() |> paste(" used after allocation") |> print()
+  force(vec)
+  func(vec) |> try(silent = TRUE) 
+  lobstr::mem_used() |> format() |> paste(" used after panic") |> print()
+  rm(vec)
+  gc(verbose = FALSE)
+  lobstr::mem_used() |> format() |> paste(" used after gc") |> print()
+}
+```
+
+
+# Case 1
+
+* `use_try_from` is false
+* Panic with no message
+
+```{extendrsrc}
+#[extendr]
+fn throw_1(x: Robj) {
+    panic!()
+}
+```
+```{r}
+test_for_leaks(throw_1)
+```
+Definitely a leak.
+
+# Case 2
+
+* `use_try_from` is true
+* Panic with no message
+
+```{extendrsrc}
+#[extendr(use_try_from = true)]
+fn throw_2(x: Robj) {
+    panic!()
+}
+```
+```{r}
+test_for_leaks(throw_2)
+```
+
+No leak!
+
+```{r}
+test_for_leaks(throw_2, vec = rep(LETTERS, 1E7))
+```
+
+But when using a string vector, it seems to leak.
+
+# Case 3
+* `use_try_from` is true
+* Return string error
+
+```{extendrsrc}
+#[extendr(use_try_from = true)]
+fn throw_3(x: Robj) -> Result<()> {
+  Err(Error::Other(String::from("")))
+}
+```
+```{r}
+test_for_leaks(throw_3)
+```
+
+Also no leak!
+
+```{r}
+test_for_leaks(throw_3, vec = rep(LETTERS, 1E7))
+```
+
+As above, a string vector leaks.
+
+# Case 4
+* `use_try_from` is true
+* Return error that takes a Robj
+
+```{extendrsrc}
+#[extendr(use_try_from = true)]
+fn throw_4(x: Robj) -> Result<()> {
+  Err(Error::ExpectedList(x))
+}
+```
+
+```{r}
+test_for_leaks(throw_4, vec = (1:1E5)[])
+```
+
+It's a bit hard to see from the small memory increase, but this is a leak.
+
+```{r}
+test_for_leaks(throw_4, vec = rep(LETTERS, 1E4))
+```
+
+As above.
