@@ -15,8 +15,8 @@ but the `vec` argument is customized ocasionally.
 ``` r
 test_for_leaks <- function(func, vec = (1:10E7)[]){
   lobstr::mem_used() |> format() |> paste(" used before allocation") |> print()
-  lobstr::mem_used() |> format() |> paste(" used after allocation") |> print()
   force(vec)
+  lobstr::mem_used() |> format() |> paste(" used after allocation") |> print()
   func(vec) |> try(silent = TRUE) 
   lobstr::mem_used() |> format() |> paste(" used after panic") |> print()
   rm(vec)
@@ -42,7 +42,7 @@ test_for_leaks(throw_1)
 ```
 
     ## [1] "57.14 MB  used before allocation"
-    ## [1] "57.42 MB  used after allocation"
+    ## [1] "457.42 MB  used after allocation"
     ## [1] "457.46 MB  used after panic"
     ## [1] "457.46 MB  used after gc"
 
@@ -65,7 +65,7 @@ test_for_leaks(throw_2)
 ```
 
     ## [1] "458.33 MB  used before allocation"
-    ## [1] "458.33 MB  used after allocation"
+    ## [1] "858.33 MB  used after allocation"
     ## [1] "858.33 MB  used after panic"
     ## [1] "458.33 MB  used after gc"
 
@@ -76,7 +76,7 @@ test_for_leaks(throw_2, vec = rep(LETTERS, 1E7))
 ```
 
     ## [1] "458.33 MB  used before allocation"
-    ## [1] "458.33 MB  used after allocation"
+    ## [1] "2.54 GB  used after allocation"
     ## [1] "2.54 GB  used after panic"
     ## [1] "2.54 GB  used after gc"
 
@@ -99,7 +99,7 @@ test_for_leaks(throw_3)
 ```
 
     ## [1] "459.14 MB  used before allocation"
-    ## [1] "459.13 MB  used after allocation"
+    ## [1] "859.13 MB  used after allocation"
     ## [1] "859.13 MB  used after panic"
     ## [1] "459.13 MB  used after gc"
 
@@ -110,7 +110,7 @@ test_for_leaks(throw_3, vec = rep(LETTERS, 1E7))
 ```
 
     ## [1] "459.13 MB  used before allocation"
-    ## [1] "459.13 MB  used after allocation"
+    ## [1] "2.54 GB  used after allocation"
     ## [1] "2.54 GB  used after panic"
     ## [1] "2.54 GB  used after gc"
 
@@ -133,7 +133,7 @@ test_for_leaks(throw_4, vec = (1:1E5)[])
 ```
 
     ## [1] "459.95 MB  used before allocation"
-    ## [1] "459.93 MB  used after allocation"
+    ## [1] "460.33 MB  used after allocation"
     ## [1] "460.34 MB  used after panic"
     ## [1] "460.34 MB  used after gc"
 
@@ -145,7 +145,7 @@ test_for_leaks(throw_4, vec = rep(LETTERS, 1E4))
 ```
 
     ## [1] "459.93 MB  used before allocation"
-    ## [1] "459.93 MB  used after allocation"
+    ## [1] "462.01 MB  used after allocation"
     ## [1] "462.02 MB  used after panic"
     ## [1] "462.02 MB  used after gc"
 

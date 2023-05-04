@@ -21,8 +21,8 @@ By default we use an integer vector as the input, but the `vec` argument is cust
 ```{r}
 test_for_leaks <- function(func, vec = (1:10E7)[]){
   lobstr::mem_used() |> format() |> paste(" used before allocation") |> print()
-  lobstr::mem_used() |> format() |> paste(" used after allocation") |> print()
   force(vec)
+  lobstr::mem_used() |> format() |> paste(" used after allocation") |> print()
   func(vec) |> try(silent = TRUE) 
   lobstr::mem_used() |> format() |> paste(" used after panic") |> print()
   rm(vec)
