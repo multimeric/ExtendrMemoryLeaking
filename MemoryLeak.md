@@ -3,6 +3,19 @@ MemoryLeaks
 2023-05-04
 
 ``` r
+knitr::opts_chunk$set(
+  engine.opts = list(
+    extendr_deps = list(
+      `extendr-api` = list(
+        git = "https://github.com/yutannihilation/extendr", 
+        branch = "poc/drop-error"
+      )
+    )
+  )
+)
+```
+
+``` r
 library(rextendr)
 ```
 
@@ -42,7 +55,7 @@ test_for_leaks(throw_1)
 ```
 
     ## [1] "57.14 MB  used before allocation"
-    ## [1] "457.42 MB  used after allocation"
+    ## [1] "457.43 MB  used after allocation"
     ## [1] "457.46 MB  used after panic"
     ## [1] "457.46 MB  used after gc"
 
@@ -98,10 +111,10 @@ fn throw_3(x: Robj) -> Result<()> {
 test_for_leaks(throw_3)
 ```
 
-    ## [1] "459.14 MB  used before allocation"
-    ## [1] "859.13 MB  used after allocation"
-    ## [1] "859.13 MB  used after panic"
-    ## [1] "459.13 MB  used after gc"
+    ## [1] "459.15 MB  used before allocation"
+    ## [1] "859.14 MB  used after allocation"
+    ## [1] "859.14 MB  used after panic"
+    ## [1] "459.14 MB  used after gc"
 
 Also no leak!
 
@@ -109,7 +122,7 @@ Also no leak!
 test_for_leaks(throw_3, vec = rep(LETTERS, 1E7))
 ```
 
-    ## [1] "459.13 MB  used before allocation"
+    ## [1] "459.14 MB  used before allocation"
     ## [1] "2.54 GB  used after allocation"
     ## [1] "2.54 GB  used after panic"
     ## [1] "2.54 GB  used after gc"
@@ -133,7 +146,7 @@ test_for_leaks(throw_4, vec = (1:1E5)[])
 ```
 
     ## [1] "459.95 MB  used before allocation"
-    ## [1] "460.33 MB  used after allocation"
+    ## [1] "460.34 MB  used after allocation"
     ## [1] "460.34 MB  used after panic"
     ## [1] "460.34 MB  used after gc"
 
@@ -144,8 +157,8 @@ leak.
 test_for_leaks(throw_4, vec = rep(LETTERS, 1E4))
 ```
 
-    ## [1] "459.93 MB  used before allocation"
-    ## [1] "462.01 MB  used after allocation"
+    ## [1] "459.94 MB  used before allocation"
+    ## [1] "462.02 MB  used after allocation"
     ## [1] "462.02 MB  used after panic"
     ## [1] "462.02 MB  used after gc"
 

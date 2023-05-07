@@ -11,6 +11,20 @@ knit: (function(input, ...) {
     })
 ---
 ```{r}
+knitr::opts_chunk$set(
+  engine.opts = list(
+    extendr_deps = list(
+      `extendr-api` = list(
+        git = "https://github.com/yutannihilation/extendr", 
+        branch = "poc/drop-error"
+      )
+    )
+  )
+)
+```
+
+
+```{r}
 library(rextendr)
 ```
 
