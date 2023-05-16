@@ -7,8 +7,8 @@ knitr::opts_chunk$set(
   engine.opts = list(
     extendr_deps = list(
       `extendr-api` = list(
-        git = "https://github.com/yutannihilation/extendr", 
-        branch = "poc/drop-error"
+        git = "https://github.com/multimeric/extendr", 
+        branch = "error-condition"
       )
     )
   )
@@ -30,7 +30,7 @@ test_for_leaks <- function(func, vec = (1:10E7)[]){
   lobstr::mem_used() |> format() |> paste(" used before allocation") |> print()
   force(vec)
   lobstr::mem_used() |> format() |> paste(" used after allocation") |> print()
-  func(vec) |> try(silent = TRUE) 
+  func(vec) |> tryCatch(error = function(e) e) |> class() |> paste("Result was: ", x=_) |> print()
   lobstr::mem_used() |> format() |> paste(" used after panic") |> print()
   rm(vec)
   gc(verbose = FALSE)
@@ -56,6 +56,8 @@ test_for_leaks(throw_1)
 
     ## [1] "57.14 MB  used before allocation"
     ## [1] "457.43 MB  used after allocation"
+    ## [1] "Result was:  simpleError" "Result was:  error"      
+    ## [3] "Result was:  condition"  
     ## [1] "457.46 MB  used after panic"
     ## [1] "457.46 MB  used after gc"
 
@@ -77,10 +79,12 @@ fn throw_2(x: Robj) {
 test_for_leaks(throw_2)
 ```
 
-    ## [1] "458.33 MB  used before allocation"
-    ## [1] "858.33 MB  used after allocation"
-    ## [1] "858.33 MB  used after panic"
-    ## [1] "458.33 MB  used after gc"
+    ## [1] "458.34 MB  used before allocation"
+    ## [1] "858.34 MB  used after allocation"
+    ## [1] "Result was:  simpleError" "Result was:  error"      
+    ## [3] "Result was:  condition"  
+    ## [1] "858.34 MB  used after panic"
+    ## [1] "458.34 MB  used after gc"
 
 No leak!
 
@@ -88,8 +92,10 @@ No leak!
 test_for_leaks(throw_2, vec = rep(LETTERS, 1E7))
 ```
 
-    ## [1] "458.33 MB  used before allocation"
+    ## [1] "458.34 MB  used before allocation"
     ## [1] "2.54 GB  used after allocation"
+    ## [1] "Result was:  simpleError" "Result was:  error"      
+    ## [3] "Result was:  condition"  
     ## [1] "2.54 GB  used after panic"
     ## [1] "2.54 GB  used after gc"
 
@@ -113,8 +119,9 @@ test_for_leaks(throw_3)
 
     ## [1] "459.15 MB  used before allocation"
     ## [1] "859.14 MB  used after allocation"
-    ## [1] "859.14 MB  used after panic"
-    ## [1] "459.14 MB  used after gc"
+    ## [1] "Result was:  NULL"
+    ## [1] "859.15 MB  used after panic"
+    ## [1] "459.15 MB  used after gc"
 
 Also no leak!
 
@@ -122,8 +129,9 @@ Also no leak!
 test_for_leaks(throw_3, vec = rep(LETTERS, 1E7))
 ```
 
-    ## [1] "459.14 MB  used before allocation"
+    ## [1] "459.15 MB  used before allocation"
     ## [1] "2.54 GB  used after allocation"
+    ## [1] "Result was:  NULL"
     ## [1] "2.54 GB  used after panic"
     ## [1] "2.54 GB  used after gc"
 
@@ -145,10 +153,11 @@ fn throw_4(x: Robj) -> Result<()> {
 test_for_leaks(throw_4, vec = (1:1E5)[])
 ```
 
-    ## [1] "459.95 MB  used before allocation"
-    ## [1] "460.34 MB  used after allocation"
-    ## [1] "460.34 MB  used after panic"
-    ## [1] "460.34 MB  used after gc"
+    ## [1] "459.96 MB  used before allocation"
+    ## [1] "460.35 MB  used after allocation"
+    ## [1] "Result was:  NULL"
+    ## [1] "460.35 MB  used after panic"
+    ## [1] "460.35 MB  used after gc"
 
 It’s a bit hard to see from the small memory increase, but this is a
 leak.
@@ -157,9 +166,10 @@ leak.
 test_for_leaks(throw_4, vec = rep(LETTERS, 1E4))
 ```
 
-    ## [1] "459.94 MB  used before allocation"
-    ## [1] "462.02 MB  used after allocation"
-    ## [1] "462.02 MB  used after panic"
-    ## [1] "462.02 MB  used after gc"
+    ## [1] "459.95 MB  used before allocation"
+    ## [1] "462.03 MB  used after allocation"
+    ## [1] "Result was:  NULL"
+    ## [1] "462.03 MB  used after panic"
+    ## [1] "462.03 MB  used after gc"
 
 As above.
